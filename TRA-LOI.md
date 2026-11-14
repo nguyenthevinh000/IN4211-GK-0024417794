@@ -49,3 +49,35 @@ Ba nguyên lý SOLID mà lớp `EventService` vi phạm:
 3. **Dependency Inversion Principle (DIP) - Nguyên lý đảo ngược phụ thuộc:**
    - *Dòng vi phạm:* Dòng 8 (`new SqlConnection(...)`), dòng 10 (`File.AppendAllText(...)`), dòng 12 (`new EmailSender()`), dòng 14 (`new SmsSender()`).
    - *Giải thích:* Lớp xử lý nghiệp vụ cấp cao (`EventService`) phụ thuộc trực tiếp vào các lớp cài đặt chi tiết cấp thấp thông qua từ khoá `new` thay vì phụ thuộc vào các giao diện trừu tượng (interface).
+
+## Câu 4b
+- **Phân biệt git merge và git rebase:**
+  - git merge: Kết hợp lịch sử của hai nhánh bằng cách tạo ra một *merge commit* mới, giữ nguyên toàn bộ lịch sử phân nhánh thực tế theo đúng trình tự thời gian.
+  - git rebase: Di chuyển gốc của nhánh hiện tại lên đầu nhánh đích bằng cách viết lại các commit để tạo thành một lịch sử commit thẳng (linear history), không sinh ra merge commit.
+- **Khi nào KHÔNG nên dùng ebase:**
+  - Không dùng git rebase trên các nhánh công khai / nhánh dùng chung (như main, develop) đã được đẩy lên kho chung và có người khác cùng làm việc, vì ebase viết lại lịch sử commit (thay đổi mã SHA), gây xung đột và làm lệch lịch sử với kho của thành viên khác.
+
+## Câu 5a
+```mermaid
+graph TD
+    API[EduHub.API<br/>Chứa: EventsController] --> App[EduHub.Application<br/>Chứa: EventService, IEventRepository]
+    API --> Infra[EduHub.Infrastructure<br/>Chứa: InMemoryEventRepository]
+    Infra --> App
+    Infra --> Domain[EduHub.Domain<br/>Chứa: Event]
+    App --> Domain
+```
+- **EduHub.Domain**: Chứa Event
+- **EduHub.Application**: Chứa IEventRepository, EventService
+- **EduHub.Infrastructure**: Chứa InMemoryEventRepository
+- **EduHub.API**: Chứa EventsController
+
+## Câu 5b
+Project EduHub.Domain không được tham chiếu tới EduHub.Infrastructure vì:
+- Theo quy tắc phụ thuộc (Dependency Rule) của Clean Architecture, chiều phụ thuộc phải hướng vào trong. Domain là tầng lõi chứa các quy tắc nghiệp vụ cốt lõi nên không được phụ thuộc vào bất kỳ tầng nào khác.
+- Nếu Domain tham chiếu tới Infrastructure (chứa CSDL, hệ thống file, dịch vụ gửi mail/SMS...), logic nghiệp vụ sẽ bị phụ thuộc chặt vào công nghệ lưu trữ cụ thể, làm mất khả năng tái sử dụng và kiểm thử độc lập.
+
+## Câu 5d
+- **Nguyên nhân:** Dịch vụ đăng ký bằng AddScoped sẽ tạo ra một đối tượng (instance) mới cho mỗi HTTP Request. Vì List<Event> trong InMemoryEventRepository không phải là static, nên khi gọi request POST, sự kiện được lưu vào List<Event> của instance thứ nhất và bị huỷ ngay khi request POST kết thúc. Khi gọi request GET sau đó, một instance InMemoryEventRepository mới hoàn toàn được tạo ra với List<Event> rỗng.
+- **Cách đăng ký để tránh lỗi:** Đăng ký InMemoryEventRepository với vòng đời **Singleton** trong Program.cs:
+  uilder.Services.AddSingleton<IEventRepository, InMemoryEventRepository>();
+  để dùng chung duy nhất một instance trong suốt thời gian chạy ứng dụng.
