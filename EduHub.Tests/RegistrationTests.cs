@@ -13,9 +13,17 @@ public class RegistrationTests
     }
 
     [Fact]
-    public void Create_WithEmptyMemberId_ShouldThrowArgumentException()
+    public void Create_WithEmptyIds_ShouldThrowArgumentException()
     {
         Assert.Throws<ArgumentException>(() => Registration.Create(Guid.Empty, Guid.NewGuid()));
+    }
+
+    [Fact]
+    public void Confirm_FromPending_ShouldChangeStatusToConfirmed()
+    {
+        var r = Registration.Create(Guid.NewGuid(), Guid.NewGuid());
+        r.Confirm();
+        Assert.Equal(RegistrationStatus.Confirmed, r.Status);
     }
 
     [Fact]
