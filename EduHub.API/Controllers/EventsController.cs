@@ -16,13 +16,21 @@ public class EventsController : ControllerBase
     }
 
     [HttpGet("api/clubs/{clubId:guid}/events")]
-    public IActionResult GetEventsByClub(Guid clubId) => Ok(_eventService.GetEventsByClub(clubId));
+    public IActionResult GetEventsByClub(Guid clubId)
+    {
+        var events = _eventService.GetEventsByClub(clubId);
+        return Ok(events);
+    }
 
     [HttpGet("api/events/{id:guid}")]
     public IActionResult GetEventById(Guid id)
     {
         var evt = _eventService.GetEventById(id);
-        return evt == null ? NotFound(new { message = "Event not found." }) : Ok(evt);
+        if (evt == null)
+        {
+            return NotFound(new { message = "Event not found." });
+        }
+        return Ok(evt);
     }
 
     [HttpPost("api/clubs/{clubId:guid}/events")]
@@ -30,7 +38,13 @@ public class EventsController : ControllerBase
     {
         try
         {
-            var evt = _eventService.CreateEvent(clubId, request.Title, request.Date, request.Capacity, request.Channel);
+            var evt = _eventService.CreateEvent(
+                clubId,
+                request.Title,
+                request.Date,
+                request.Capacity,
+                request.Channel);
+
             return CreatedAtAction(nameof(GetEventById), new { id = evt.Id }, evt);
         }
         catch (ArgumentException ex)
@@ -40,6 +54,13 @@ public class EventsController : ControllerBase
     }
 
     [HttpDelete("api/events/{id:guid}")]
-    public IActionResult DeleteEvent(Guid id) =>
-        _eventService.DeleteEvent(id) ? NoContent() : NotFound(new { message = "Event not found." });
+    public IActionResult DeleteEvent(Guid id)
+    {
+        var deleted = _eventService.DeleteEvent(id);
+        if (!deleted)
+        {
+            return NotFound(new { message = "Event not found." });
+        }
+        return NoContent();
+    }
 }
