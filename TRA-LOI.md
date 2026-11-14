@@ -37,3 +37,15 @@ Ba nguyên lý SOLID mà lớp `EventService` vi phạm:
 3. **Dependency Inversion Principle (DIP) - Nguyên lý đảo ngược phụ thuộc:**
    - *Dòng vi phạm:* Dòng 8 (`new SqlConnection(...)`), dòng 10 (`File.AppendAllText(...)`), dòng 12 (`new EmailSender()`), dòng 14 (`new SmsSender()`).
    - *Giải thích:* Lớp xử lý nghiệp vụ cấp cao (`EventService`) phụ thuộc trực tiếp vào các lớp cài đặt chi tiết cấp thấp thông qua từ khoá `new` thay vì phụ thuộc vào các giao diện trừu tượng (interface).
+
+## Câu 3a
+Ba nguyên lý SOLID mà lớp `EventService` vi phạm:
+1. **Single Responsibility Principle (SRP) - Nguyên lý đơn trách nhiệm:**
+   - *Dòng vi phạm:* Dòng 5–6 (kiểm tra tính hợp lệ dữ liệu), dòng 8–9 (kết nối và lưu CSDL SQL), dòng 10 (ghi log ra tệp), dòng 11–14 (gửi thông báo qua Email/SMS).
+   - *Giải thích:* Lớp `EventService` đảm nhận quá nhiều trách nhiệm khác nhau; khi thay đổi cách lưu trữ, cách ghi log hoặc kênh thông báo đều phải sửa lớp này.
+2. **Open/Closed Principle (OCP) - Nguyên lý đóng/mở:**
+   - *Dòng vi phạm:* Dòng 11–14 (`if (channel == "email") ... else if (channel == "sms") ...`).
+   - *Giải thích:* Khi muốn bổ sung kênh thông báo mới (như Push Notification, Zalo), ta buộc phải sửa đổi trực tiếp mã nguồn của hàm `CreateEvent` thay vì chỉ mở rộng.
+3. **Dependency Inversion Principle (DIP) - Nguyên lý đảo ngược phụ thuộc:**
+   - *Dòng vi phạm:* Dòng 8 (`new SqlConnection(...)`), dòng 10 (`File.AppendAllText(...)`), dòng 12 (`new EmailSender()`), dòng 14 (`new SmsSender()`).
+   - *Giải thích:* Lớp xử lý nghiệp vụ cấp cao (`EventService`) phụ thuộc trực tiếp vào các lớp cài đặt chi tiết cấp thấp thông qua từ khoá `new` thay vì phụ thuộc vào các giao diện trừu tượng (interface).
